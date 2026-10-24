@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#2f6b3e">
+  <title>ColorVale</title>
+  <style>
+    html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #2f6b3e;
+      touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; overscroll-behavior: none; }
+    #unity-canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; background: #2f6b3e; outline: none; }
+    #loading { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px;
+      background: radial-gradient(circle at 50% 40%, #4f9a5c 0%, #2f6b3e 70%); transition: opacity .4s; }
+    #loading img { width: min(82vw, 440px); height: auto; }
+    #bar { width: min(70vw, 360px); height: 20px; border-radius: 12px; background: rgba(0,0,0,.28); border: 3px solid #fff; overflow: hidden; }
+    #fill { width: 0; height: 100%; border-radius: 9px; transition: width .2s;
+      background: linear-gradient(90deg, #ff4d4d, #ffb400, #3ccf4e, #2f8bff, #a64dff); }
+    #msg { color: #fff; font: 700 17px system-ui, -apple-system, "Segoe UI", sans-serif; text-shadow: 0 2px 0 rgba(0,0,0,.35); text-align: center; padding: 0 24px; }
+    #rotate { display: none; position: fixed; inset: 0; z-index: 10; background: #2f6b3e; color: #fff; align-items: center; justify-content: center;
+      font: 700 22px system-ui, -apple-system, "Segoe UI", sans-serif; text-align: center; padding: 24px; }
+    @media (orientation: landscape) and (pointer: coarse) { #rotate { display: flex; } }
+  </style>
+</head>
+<body>
+  <canvas id="unity-canvas" tabindex="-1"></canvas>
+  <div id="loading">
+    <img src="logo.png" alt="ColorVale">
+    <div id="bar"><div id="fill"></div></div>
+    <div id="msg">Yükleniyor…</div>
+  </div>
+  <div id="rotate">Telefonu dik tutun 📱</div>
+  <script>
+    var canvas = document.querySelector("#unity-canvas");
+    var buildUrl = "Build";
+    var config = {
+      arguments: [],
+      dataUrl: buildUrl + "/WebGL.data.unityweb",
+      frameworkUrl: buildUrl + "/WebGL.framework.js.unityweb",
+      codeUrl: buildUrl + "/WebGL.wasm.unityweb",
+      streamingAssetsUrl: "StreamingAssets",
+      companyName: "ColorVale",
+      productName: "ColorVale",
+      productVersion: "0.1.0",
+      // İlerleme (PlayerPrefs) tarayıcıya kendiliğinden kaydedilsin
+      autoSyncPersistentDataPath: true,
+      // Yüksek çözünürlüklü telefonlarda akıcılık için en fazla 2x
+      devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2),
+      showBanner: function (msg, type) { if (type === "error") document.querySelector("#msg").textContent = msg; }
+    };
+    // Telefonda yanlışlıkla sayfa kaymasın ya da yakınlaşmasın
+    document.addEventListener("gesturestart", function (e) { e.preventDefault(); });
+    document.addEventListener("touchmove", function (e) { e.preventDefault(); }, { passive: false });
+
+    var script = document.createElement("script");
+    script.src = buildUrl + "/WebGL.loader.js";
+    script.onload = function () {
+      createUnityInstance(canvas, config, function (p) {
+        document.querySelector("#fill").style.width = Math.round(100 * p) + "%";
+      }).then(function () {
+        var l = document.querySelector("#loading");
+        l.style.opacity = "0";
+        setTimeout(function () { l.style.display = "none"; }, 450);
+      }).catch(function (m) {
+        document.querySelector("#msg").textContent = "Oyun açılamadı: " + m;
+      });
+    };
+    document.body.appendChild(script);
+  </script>
+</body>
+</html>
